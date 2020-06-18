@@ -111,10 +111,28 @@ public class MainWindow
             @Override
             public void actionPerformed(ActionEvent e)
             {
-                ArrayList<String> res1 = split(inputField.getText());
-                ArrayList<String> res2 = infix2suffix(res1);
-                String res3 = computeSuffix(res2);
-                outputField.setText(res3);
+                boolean isFailed = false;
+                ArrayList<String> res1;
+                ArrayList<String> res2;
+                String res3 = "";
+                try
+                {
+                    res1 = split(inputField.getText());
+                    res2 = infix2suffix(res1);
+                    res3 = computeSuffix(res2);
+                } catch (Exception exception)
+                {
+                    isFailed = true;
+                    JOptionPane.showMessageDialog(mainPanel, "表达式有误！", "错误", JOptionPane.WARNING_MESSAGE);
+                }
+                if (isFailed)
+                {
+                    outputField.setText("Error!");
+                }
+                else
+                {
+                    outputField.setText(res3);
+                }
             }
         });
         button_add.addActionListener(inputListener);
