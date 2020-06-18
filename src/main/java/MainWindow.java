@@ -41,6 +41,7 @@ public class MainWindow
     private JRadioButton octRadioButton;
     private JRadioButton binRadioButton;
 
+    private int lastRadix = 10;
     private int radix = 10;
 
     private ActionListener inputListener = new ActionListener()
@@ -55,6 +56,8 @@ public class MainWindow
 
     private ItemListener radixListener = new ItemListener()
     {
+        int val = 0;
+
         @Override
         public void itemStateChanged(ItemEvent e)
         {
@@ -62,18 +65,30 @@ public class MainWindow
             if (source == hexRadioButton)
             {
                 radix = 16;
+                val = Integer.valueOf(outputField.getText(), lastRadix);
+                outputField.setText(Integer.toHexString(val));
+                lastRadix = 16;
             }
             else if (source == decRadioButton)
             {
                 radix = 10;
+                val = Integer.valueOf(outputField.getText(), lastRadix);
+                outputField.setText(Integer.toString(val));
+                lastRadix = 10;
             }
             else if (source == octRadioButton)
             {
                 radix = 8;
+                val = Integer.valueOf(outputField.getText(), lastRadix);
+                outputField.setText(Integer.toOctalString(val));
+                lastRadix = 8;
             }
             else if (source == binRadioButton)
             {
                 radix = 2;
+                val = Integer.valueOf(outputField.getText(), lastRadix);
+                outputField.setText(Integer.toBinaryString(val));
+                lastRadix = 2;
             }
         }
     };
@@ -272,28 +287,35 @@ public class MainWindow
     {
         Double a_val = Double.valueOf(a);
         Double b_val = Double.valueOf(b);
-        String result = "";
+        double result = 0;
         if (operator.equals("+"))
         {
-            result = String.valueOf(a_val + b_val);
+            result = a_val + b_val;
         }
         else if (operator.equals("-"))
         {
-            result = String.valueOf(a_val - b_val);
+            result = a_val - b_val;
         }
         else if (operator.equals("*"))
         {
-            result = String.valueOf(a_val * b_val);
+            result = a_val * b_val;
         }
         else if (operator.equals("/"))
         {
-            result = String.valueOf(a_val / b_val);
+            result = a_val / b_val;
         }
         else if (operator.equals("%"))
         {
-            result = String.valueOf(a_val % b_val);
+            result = a_val % b_val;
         }
-        return result;
+        if (Math.floor(result) == Math.ceil(result))
+        {
+            return String.valueOf((int) result);
+        }
+        else
+        {
+            return String.valueOf(result);
+        }
     }
 
     {
