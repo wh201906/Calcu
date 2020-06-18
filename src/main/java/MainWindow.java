@@ -10,7 +10,8 @@ import java.util.ArrayList;
 
 public class MainWindow
 {
-    static private ArrayList<String> operatorList = new ArrayList<String>(Arrays.asList("+", "-", "*", "/", "%", "(", ")"));
+    private ArrayList<String> symbolList = new ArrayList<String>(Arrays.asList("(", ")"));
+    private ArrayList<ArrayList<String>> operatorList = new ArrayList<>();
 
     private JPanel mainPanel;
     private JPanel inputPanel;
@@ -60,7 +61,8 @@ public class MainWindow
             @Override
             public void actionPerformed(ActionEvent e)
             {
-                ArrayList<String> res = split(textField.getText());
+                ArrayList<String> res1 = split(textField.getText());
+                ArrayList<String> res2 = infix2suffix(res1);
             }
         });
         button_add.addActionListener(inputListener);
@@ -69,6 +71,13 @@ public class MainWindow
         button_divide.addActionListener(inputListener);
         button_mod.addActionListener(inputListener);
 
+        operatorList.add(new ArrayList<String>(Arrays.asList("*", "/", "%"))); // 运算符顺序列表可调
+        operatorList.add(new ArrayList<String>(Arrays.asList("+", "-")));
+//        operatorList.add(new ArrayList<String>(Arrays.asList("<<",">>")));
+        for (ArrayList<String> list : operatorList)
+        {
+            symbolList.addAll(list);
+        }
     }
 
     public static void main(String[] args)
@@ -87,7 +96,7 @@ public class MainWindow
         for (int i = 0; i < expression.length(); i++)
         {
             String sub = expression.substring(i, i + 1);
-            if (operatorList.contains(sub))
+            if (symbolList.contains(sub))
             {
                 if (!temp.toString().equals(""))
                 {
@@ -113,18 +122,65 @@ public class MainWindow
 
         Stack<String> stack = new Stack<String>();
         ArrayList<String> result = new ArrayList<String>();
-        for (String item : infixexp)
+        for (String item : infixexp) // 从左到右遍历中缀表达式
         {
-            if (!operatorList.contains(item))
+            if (!symbolList.contains(item)) // 如果不是运算符，就直接加入返回列表
             {
                 result.add(item);
             }
             else
             {
-
+                if (!item.equals("(") && !item.equals(")")) // 如果是普通运算符，则进行进一步判断
+                {
+                    for (int i = 0; i < operatorList.size(); i++)
+                    {
+                        if (operatorList.get(i).contains(item)) // 在运算符列表中查找当前运算符
+                        {
+                            String topOperator = "";
+                            int j = 0;
+                            do
+                            {
+                                if (stack.isEmpty())
+                                {
+                                    break;
+                                }
+                                topOperator = stack.peek(); // 获取栈顶运算符
+                                for (j = 0; j <= i; j++) // 在优先级大于等于当前运算符的列表中进行查找
+                                {
+                                    if (operatorList.get(j).contains(topOperator))
+                                    {
+                                        break;
+                                    }
+                                }
+                                if (j <= i) // 如果栈顶运算符优先级大于等于当前运算符，则将其弹出并加入返回列表，循环这一过程
+                                {
+                                    result.add(stack.pop()); // 当中暗含了同运算级时的从左到右运算法则
+                                }
+                            } while (j <= i);
+                            stack.add(item);
+                            break;
+                        }
+                    }
+                }
+                else if (item.equals("(")) // 如果是左括号，则直接入栈，作为标记
+                {
+                    stack.push(item);
+                }
+                else // 如果是右括号，则将栈顶运算符直接弹出直至遇到左括号
+                {
+                    while (!stack.peek().equals("("))
+                    {
+                        result.add(stack.pop());
+                    }
+                    stack.pop(); // 处理完括号内运算符后丢弃左括号
+                }
             }
         }
-        return null;
+        while (!stack.isEmpty()) // 将栈中内容一次输出至返回列表
+        {
+            result.add(stack.pop());
+        }
+        return result;
     }
 
     {
