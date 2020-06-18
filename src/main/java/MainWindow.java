@@ -201,6 +201,10 @@ public class MainWindow
                 {
                     result.add(temp.toString());
                 }
+                if ((result.size() == 0 || symbolList.contains(result.get(result.size() - 1))) && sub.equals("-"))
+                {
+                    result.add("0");
+                }
                 result.add(sub);
                 temp.delete(0, temp.length());
             }
