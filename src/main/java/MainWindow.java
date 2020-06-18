@@ -1,8 +1,17 @@
 import javax.swing.*;
 import javax.swing.border.TitledBorder;
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.lang.reflect.Array;
+import java.util.Arrays;
+import java.util.Stack;
+import java.util.ArrayList;
 
-public class MainWindow {
+public class MainWindow
+{
+    static private ArrayList<String> operatorList = new ArrayList<String>(Arrays.asList("+", "-", "*", "/", "%", "(", ")"));
+
     private JPanel mainPanel;
     private JPanel inputPanel;
     private JButton button1;
@@ -17,19 +26,105 @@ public class MainWindow {
     private JButton button0;
     private JButton button_dot;
     private JButton button_equal;
-    private JTextField textField1;
+    private JTextField textField;
     private JButton button_add;
     private JButton button_minus;
     private JButton button_multiply;
     private JButton button_divide;
     private JButton button_mod;
 
-    public static void main(String[] args) {
+    private ActionListener inputListener = new ActionListener()
+    {
+        @Override
+        public void actionPerformed(ActionEvent e)
+        {
+            textField.setText(textField.getText() + ((JButton) (e.getSource())).getText());
+        }
+    };
+
+    public MainWindow()
+    {
+        button0.addActionListener(inputListener);
+        button1.addActionListener(inputListener);
+        button2.addActionListener(inputListener);
+        button3.addActionListener(inputListener);
+        button4.addActionListener(inputListener);
+        button5.addActionListener(inputListener);
+        button6.addActionListener(inputListener);
+        button7.addActionListener(inputListener);
+        button8.addActionListener(inputListener);
+        button9.addActionListener(inputListener);
+        button_dot.addActionListener(inputListener);
+        button_equal.addActionListener(new ActionListener()
+        {
+            @Override
+            public void actionPerformed(ActionEvent e)
+            {
+                ArrayList<String> res = split(textField.getText());
+            }
+        });
+        button_add.addActionListener(inputListener);
+        button_minus.addActionListener(inputListener);
+        button_multiply.addActionListener(inputListener);
+        button_divide.addActionListener(inputListener);
+        button_mod.addActionListener(inputListener);
+
+    }
+
+    public static void main(String[] args)
+    {
         JFrame frame = new JFrame("MainWindow");
         frame.setContentPane(new MainWindow().mainPanel);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.pack();
         frame.setVisible(true);
+    }
+
+    private ArrayList<String> split(String expression)
+    {
+        ArrayList<String> result = new ArrayList<String>();
+        StringBuffer temp = new StringBuffer();
+        for (int i = 0; i < expression.length(); i++)
+        {
+            String sub = expression.substring(i, i + 1);
+            if (operatorList.contains(sub))
+            {
+                if (!temp.toString().equals(""))
+                {
+                    result.add(temp.toString());
+                }
+                result.add(sub);
+                temp.delete(0, temp.length());
+            }
+            else
+            {
+                temp.append(sub);
+            }
+        }
+        if (!temp.toString().equals(""))
+        {
+            result.add(temp.toString());
+        }
+        return result;
+    }
+
+    private ArrayList<String> infix2suffix(ArrayList<String> infixexp)
+    {
+
+        Stack<String> stack = new Stack<String>();
+        ArrayList<String> result = new ArrayList<String>();
+        for (String item : infixexp)
+        {
+            if (!operatorList.contains(item))
+            {
+                result.add(item);
+            }
+            else
+            {
+
+            }
+        }
+        return null;
     }
 
     {
@@ -46,22 +141,22 @@ public class MainWindow {
      *
      * @noinspection ALL
      */
-    private void $$$setupUI$$$() {
+    private void $$$setupUI$$$()
+    {
         mainPanel = new JPanel();
         mainPanel.setLayout(new GridBagLayout());
-        mainPanel.setBorder(BorderFactory.createTitledBorder(null, "C", TitledBorder.DEFAULT_JUSTIFICATION, TitledBorder.DEFAULT_POSITION, null, null));
         final JPanel spacer1 = new JPanel();
         GridBagConstraints gbc;
         gbc = new GridBagConstraints();
         gbc.gridx = 0;
-        gbc.gridy = 0;
+        gbc.gridy = 3;
         gbc.fill = GridBagConstraints.VERTICAL;
         mainPanel.add(spacer1, gbc);
         inputPanel = new JPanel();
         inputPanel.setLayout(new GridBagLayout());
         gbc = new GridBagConstraints();
         gbc.gridx = 0;
-        gbc.gridy = 1;
+        gbc.gridy = 4;
         gbc.fill = GridBagConstraints.BOTH;
         mainPanel.add(inputPanel, gbc);
         final JPanel spacer2 = new JPanel();
@@ -81,6 +176,7 @@ public class MainWindow {
         gbc = new GridBagConstraints();
         gbc.gridx = 4;
         gbc.gridy = 0;
+        gbc.weighty = 1.0;
         gbc.fill = GridBagConstraints.HORIZONTAL;
         inputPanel.add(button3, gbc);
         button4 = new JButton();
@@ -88,6 +184,7 @@ public class MainWindow {
         gbc = new GridBagConstraints();
         gbc.gridx = 0;
         gbc.gridy = 2;
+        gbc.weighty = 1.0;
         gbc.fill = GridBagConstraints.HORIZONTAL;
         inputPanel.add(button4, gbc);
         button5 = new JButton();
@@ -95,6 +192,7 @@ public class MainWindow {
         gbc = new GridBagConstraints();
         gbc.gridx = 2;
         gbc.gridy = 2;
+        gbc.weighty = 1.0;
         gbc.fill = GridBagConstraints.HORIZONTAL;
         inputPanel.add(button5, gbc);
         button6 = new JButton();
@@ -102,6 +200,7 @@ public class MainWindow {
         gbc = new GridBagConstraints();
         gbc.gridx = 4;
         gbc.gridy = 2;
+        gbc.weighty = 1.0;
         gbc.fill = GridBagConstraints.HORIZONTAL;
         inputPanel.add(button6, gbc);
         final JPanel spacer4 = new JPanel();
@@ -121,6 +220,7 @@ public class MainWindow {
         gbc = new GridBagConstraints();
         gbc.gridx = 0;
         gbc.gridy = 4;
+        gbc.weighty = 1.0;
         gbc.fill = GridBagConstraints.HORIZONTAL;
         inputPanel.add(button7, gbc);
         final JPanel spacer6 = new JPanel();
@@ -134,6 +234,7 @@ public class MainWindow {
         gbc = new GridBagConstraints();
         gbc.gridx = 0;
         gbc.gridy = 6;
+        gbc.weighty = 1.0;
         gbc.fill = GridBagConstraints.HORIZONTAL;
         inputPanel.add(button0, gbc);
         button8 = new JButton();
@@ -141,6 +242,7 @@ public class MainWindow {
         gbc = new GridBagConstraints();
         gbc.gridx = 2;
         gbc.gridy = 4;
+        gbc.weighty = 1.0;
         gbc.fill = GridBagConstraints.HORIZONTAL;
         inputPanel.add(button8, gbc);
         button9 = new JButton();
@@ -148,6 +250,7 @@ public class MainWindow {
         gbc = new GridBagConstraints();
         gbc.gridx = 4;
         gbc.gridy = 4;
+        gbc.weighty = 1.0;
         gbc.fill = GridBagConstraints.HORIZONTAL;
         inputPanel.add(button9, gbc);
         button_dot = new JButton();
@@ -155,6 +258,7 @@ public class MainWindow {
         gbc = new GridBagConstraints();
         gbc.gridx = 2;
         gbc.gridy = 6;
+        gbc.weighty = 1.0;
         gbc.fill = GridBagConstraints.HORIZONTAL;
         inputPanel.add(button_dot, gbc);
         button_equal = new JButton();
@@ -162,6 +266,7 @@ public class MainWindow {
         gbc = new GridBagConstraints();
         gbc.gridx = 4;
         gbc.gridy = 6;
+        gbc.weighty = 1.0;
         gbc.fill = GridBagConstraints.HORIZONTAL;
         inputPanel.add(button_equal, gbc);
         button2 = new JButton();
@@ -169,6 +274,7 @@ public class MainWindow {
         gbc = new GridBagConstraints();
         gbc.gridx = 2;
         gbc.gridy = 0;
+        gbc.weighty = 1.0;
         gbc.fill = GridBagConstraints.HORIZONTAL;
         inputPanel.add(button2, gbc);
         button1 = new JButton();
@@ -176,14 +282,102 @@ public class MainWindow {
         gbc = new GridBagConstraints();
         gbc.gridx = 0;
         gbc.gridy = 0;
+        gbc.weighty = 1.0;
         gbc.fill = GridBagConstraints.HORIZONTAL;
         inputPanel.add(button1, gbc);
+        final JPanel panel1 = new JPanel();
+        panel1.setLayout(new GridBagLayout());
+        gbc = new GridBagConstraints();
+        gbc.gridx = 0;
+        gbc.gridy = 2;
+        gbc.fill = GridBagConstraints.BOTH;
+        mainPanel.add(panel1, gbc);
+        button_add = new JButton();
+        button_add.setText("+");
+        gbc = new GridBagConstraints();
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.weighty = 1.0;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        panel1.add(button_add, gbc);
+        final JPanel spacer7 = new JPanel();
+        gbc = new GridBagConstraints();
+        gbc.gridx = 1;
+        gbc.gridy = 0;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        panel1.add(spacer7, gbc);
+        button_minus = new JButton();
+        button_minus.setText("-");
+        gbc = new GridBagConstraints();
+        gbc.gridx = 2;
+        gbc.gridy = 0;
+        gbc.weighty = 1.0;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        panel1.add(button_minus, gbc);
+        button_multiply = new JButton();
+        button_multiply.setText("*");
+        gbc = new GridBagConstraints();
+        gbc.gridx = 4;
+        gbc.gridy = 0;
+        gbc.weighty = 1.0;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        panel1.add(button_multiply, gbc);
+        button_divide = new JButton();
+        button_divide.setText("/");
+        gbc = new GridBagConstraints();
+        gbc.gridx = 6;
+        gbc.gridy = 0;
+        gbc.weighty = 1.0;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        panel1.add(button_divide, gbc);
+        button_mod = new JButton();
+        button_mod.setText("%");
+        gbc = new GridBagConstraints();
+        gbc.gridx = 8;
+        gbc.gridy = 0;
+        gbc.weighty = 1.0;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        panel1.add(button_mod, gbc);
+        final JPanel spacer8 = new JPanel();
+        gbc = new GridBagConstraints();
+        gbc.gridx = 3;
+        gbc.gridy = 0;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        panel1.add(spacer8, gbc);
+        final JPanel spacer9 = new JPanel();
+        gbc = new GridBagConstraints();
+        gbc.gridx = 5;
+        gbc.gridy = 0;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        panel1.add(spacer9, gbc);
+        final JPanel spacer10 = new JPanel();
+        gbc = new GridBagConstraints();
+        gbc.gridx = 7;
+        gbc.gridy = 0;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        panel1.add(spacer10, gbc);
+        final JPanel spacer11 = new JPanel();
+        gbc = new GridBagConstraints();
+        gbc.gridx = 0;
+        gbc.gridy = 1;
+        gbc.fill = GridBagConstraints.VERTICAL;
+        mainPanel.add(spacer11, gbc);
+        textField = new JTextField();
+        textField.setHorizontalAlignment(4);
+        gbc = new GridBagConstraints();
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.weighty = 2.0;
+        gbc.anchor = GridBagConstraints.WEST;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        mainPanel.add(textField, gbc);
     }
 
     /**
      * @noinspection ALL
      */
-    public JComponent $$$getRootComponent$$$() {
+    public JComponent $$$getRootComponent$$$()
+    {
         return mainPanel;
     }
 
