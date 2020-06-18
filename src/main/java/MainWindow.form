@@ -5,7 +5,7 @@
       <xy x="20" y="20" width="719" height="564"/>
     </constraints>
     <properties>
-      <preferredSize width="300" height="400"/>
+      <preferredSize width="350" height="400"/>
     </properties>
     <border type="none"/>
     <children>
@@ -242,6 +242,36 @@
               <gridbag weightx="0.0" weighty="0.0"/>
             </constraints>
           </hspacer>
+          <component id="81cc6" class="javax.swing.JButton" binding="button_left">
+            <constraints>
+              <grid row="0" column="10" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+              <gridbag weightx="0.0" weighty="0.0"/>
+            </constraints>
+            <properties>
+              <text value="("/>
+            </properties>
+          </component>
+          <component id="69ebf" class="javax.swing.JButton" binding="button_right">
+            <constraints>
+              <grid row="0" column="12" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+              <gridbag weightx="0.0" weighty="0.0"/>
+            </constraints>
+            <properties>
+              <text value=")"/>
+            </properties>
+          </component>
+          <hspacer id="3a6c9">
+            <constraints>
+              <grid row="0" column="9" row-span="1" col-span="1" vsize-policy="1" hsize-policy="6" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+              <gridbag weightx="0.0" weighty="0.0"/>
+            </constraints>
+          </hspacer>
+          <hspacer id="195c4">
+            <constraints>
+              <grid row="0" column="11" row-span="1" col-span="1" vsize-policy="1" hsize-policy="6" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+              <gridbag weightx="0.0" weighty="0.0"/>
+            </constraints>
+          </hspacer>
         </children>
       </grid>
       <vspacer id="846f7">
@@ -255,7 +285,9 @@
           <grid row="2" column="0" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
           <gridbag weightx="0.0" weighty="0.0"/>
         </constraints>
-        <properties/>
+        <properties>
+          <preferredSize width="350" height="45"/>
+        </properties>
         <border type="none" title="Radix"/>
         <children>
           <component id="3e649" class="javax.swing.JRadioButton" binding="hexRadioButton" default-binding="true">
@@ -264,6 +296,7 @@
               <gridbag weightx="0.0" weighty="0.0"/>
             </constraints>
             <properties>
+              <focusable value="false"/>
               <text value="Hex"/>
             </properties>
           </component>
@@ -279,6 +312,7 @@
               <gridbag weightx="0.0" weighty="0.0"/>
             </constraints>
             <properties>
+              <focusable value="false"/>
               <selected value="true"/>
               <text value="Dec"/>
             </properties>
@@ -289,6 +323,7 @@
               <gridbag weightx="0.0" weighty="0.0"/>
             </constraints>
             <properties>
+              <focusable value="false"/>
               <text value="Oct"/>
             </properties>
           </component>
@@ -298,6 +333,7 @@
               <gridbag weightx="0.0" weighty="0.0"/>
             </constraints>
             <properties>
+              <focusable value="false"/>
               <text value="Bin"/>
             </properties>
           </component>
@@ -327,7 +363,7 @@
           <gridbag weightx="0.0" weighty="0.0"/>
         </constraints>
         <properties>
-          <preferredSize width="300" height="60"/>
+          <preferredSize width="350" height="60"/>
         </properties>
         <border type="none"/>
         <children>
@@ -342,7 +378,7 @@
               <editable value="false"/>
               <horizontalAlignment value="4"/>
               <opaque value="true"/>
-              <preferredSize width="200" height="30"/>
+              <preferredSize width="250" height="30"/>
             </properties>
           </component>
           <component id="662f2" class="javax.swing.JTextField" binding="inputField">
@@ -355,7 +391,7 @@
             <properties>
               <horizontalAlignment value="4"/>
               <opaque value="true"/>
-              <preferredSize width="200" height="30"/>
+              <preferredSize width="250" height="30"/>
             </properties>
           </component>
           <component id="b6956" class="javax.swing.JButton" binding="button_clear">

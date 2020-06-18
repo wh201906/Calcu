@@ -40,6 +40,8 @@ public class MainWindow
     private JRadioButton decRadioButton;
     private JRadioButton octRadioButton;
     private JRadioButton binRadioButton;
+    private JButton button_left;
+    private JButton button_right;
 
     private int lastRadix = 10;
     private int radix = 10;
@@ -140,6 +142,9 @@ public class MainWindow
         button_multiply.addActionListener(inputListener);
         button_divide.addActionListener(inputListener);
         button_mod.addActionListener(inputListener);
+        button_left.addActionListener(inputListener);
+        button_right.addActionListener(inputListener);
+
         inputField.addKeyListener(new KeyAdapter()
         {
             @Override
@@ -188,8 +193,9 @@ public class MainWindow
         frame.setVisible(true);
     }
 
-    private ArrayList<String> split(String expression)
+    private ArrayList<String> split(String exp)
     {
+        String expression = exp.trim();
         ArrayList<String> result = new ArrayList<String>();
         StringBuffer temp = new StringBuffer();
         for (int i = 0; i < expression.length(); i++)
@@ -358,7 +364,7 @@ public class MainWindow
     {
         mainPanel = new JPanel();
         mainPanel.setLayout(new GridBagLayout());
-        mainPanel.setPreferredSize(new Dimension(300, 400));
+        mainPanel.setPreferredSize(new Dimension(350, 400));
         final JPanel spacer1 = new JPanel();
         GridBagConstraints gbc;
         gbc = new GridBagConstraints();
@@ -554,14 +560,41 @@ public class MainWindow
         gbc.gridy = 0;
         gbc.fill = GridBagConstraints.HORIZONTAL;
         operatorPanel.add(spacer10, gbc);
+        button_left = new JButton();
+        button_left.setText("(");
+        gbc = new GridBagConstraints();
+        gbc.gridx = 10;
+        gbc.gridy = 0;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        operatorPanel.add(button_left, gbc);
+        button_right = new JButton();
+        button_right.setText(")");
+        gbc = new GridBagConstraints();
+        gbc.gridx = 12;
+        gbc.gridy = 0;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        operatorPanel.add(button_right, gbc);
         final JPanel spacer11 = new JPanel();
+        gbc = new GridBagConstraints();
+        gbc.gridx = 9;
+        gbc.gridy = 0;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        operatorPanel.add(spacer11, gbc);
+        final JPanel spacer12 = new JPanel();
+        gbc = new GridBagConstraints();
+        gbc.gridx = 11;
+        gbc.gridy = 0;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        operatorPanel.add(spacer12, gbc);
+        final JPanel spacer13 = new JPanel();
         gbc = new GridBagConstraints();
         gbc.gridx = 0;
         gbc.gridy = 3;
         gbc.fill = GridBagConstraints.VERTICAL;
-        mainPanel.add(spacer11, gbc);
+        mainPanel.add(spacer13, gbc);
         radixPanel = new JPanel();
         radixPanel.setLayout(new GridBagLayout());
+        radixPanel.setPreferredSize(new Dimension(350, 45));
         gbc = new GridBagConstraints();
         gbc.gridx = 0;
         gbc.gridy = 2;
@@ -569,19 +602,21 @@ public class MainWindow
         mainPanel.add(radixPanel, gbc);
         radixPanel.setBorder(BorderFactory.createTitledBorder(null, "Radix", TitledBorder.DEFAULT_JUSTIFICATION, TitledBorder.DEFAULT_POSITION, null, null));
         hexRadioButton = new JRadioButton();
+        hexRadioButton.setFocusable(false);
         hexRadioButton.setText("Hex");
         gbc = new GridBagConstraints();
         gbc.gridx = 0;
         gbc.gridy = 0;
         gbc.anchor = GridBagConstraints.WEST;
         radixPanel.add(hexRadioButton, gbc);
-        final JPanel spacer12 = new JPanel();
+        final JPanel spacer14 = new JPanel();
         gbc = new GridBagConstraints();
         gbc.gridx = 1;
         gbc.gridy = 0;
         gbc.fill = GridBagConstraints.HORIZONTAL;
-        radixPanel.add(spacer12, gbc);
+        radixPanel.add(spacer14, gbc);
         decRadioButton = new JRadioButton();
+        decRadioButton.setFocusable(false);
         decRadioButton.setSelected(true);
         decRadioButton.setText("Dec");
         gbc = new GridBagConstraints();
@@ -590,6 +625,7 @@ public class MainWindow
         gbc.anchor = GridBagConstraints.WEST;
         radixPanel.add(decRadioButton, gbc);
         octRadioButton = new JRadioButton();
+        octRadioButton.setFocusable(false);
         octRadioButton.setText("Oct");
         gbc = new GridBagConstraints();
         gbc.gridx = 4;
@@ -597,33 +633,34 @@ public class MainWindow
         gbc.anchor = GridBagConstraints.WEST;
         radixPanel.add(octRadioButton, gbc);
         binRadioButton = new JRadioButton();
+        binRadioButton.setFocusable(false);
         binRadioButton.setText("Bin");
         gbc = new GridBagConstraints();
         gbc.gridx = 6;
         gbc.gridy = 0;
         gbc.anchor = GridBagConstraints.WEST;
         radixPanel.add(binRadioButton, gbc);
-        final JPanel spacer13 = new JPanel();
+        final JPanel spacer15 = new JPanel();
         gbc = new GridBagConstraints();
         gbc.gridx = 3;
         gbc.gridy = 0;
         gbc.fill = GridBagConstraints.HORIZONTAL;
-        radixPanel.add(spacer13, gbc);
-        final JPanel spacer14 = new JPanel();
+        radixPanel.add(spacer15, gbc);
+        final JPanel spacer16 = new JPanel();
         gbc = new GridBagConstraints();
         gbc.gridx = 5;
         gbc.gridy = 0;
         gbc.fill = GridBagConstraints.HORIZONTAL;
-        radixPanel.add(spacer14, gbc);
-        final JPanel spacer15 = new JPanel();
+        radixPanel.add(spacer16, gbc);
+        final JPanel spacer17 = new JPanel();
         gbc = new GridBagConstraints();
         gbc.gridx = 0;
         gbc.gridy = 1;
         gbc.fill = GridBagConstraints.VERTICAL;
-        mainPanel.add(spacer15, gbc);
+        mainPanel.add(spacer17, gbc);
         outputPanel = new JPanel();
         outputPanel.setLayout(new GridBagLayout());
-        outputPanel.setPreferredSize(new Dimension(300, 60));
+        outputPanel.setPreferredSize(new Dimension(350, 60));
         gbc = new GridBagConstraints();
         gbc.gridx = 0;
         gbc.gridy = 0;
@@ -633,7 +670,7 @@ public class MainWindow
         outputField.setEditable(false);
         outputField.setHorizontalAlignment(4);
         outputField.setOpaque(true);
-        outputField.setPreferredSize(new Dimension(200, 30));
+        outputField.setPreferredSize(new Dimension(250, 30));
         gbc = new GridBagConstraints();
         gbc.gridx = 0;
         gbc.gridy = 1;
@@ -643,7 +680,7 @@ public class MainWindow
         inputField = new JTextField();
         inputField.setHorizontalAlignment(4);
         inputField.setOpaque(true);
-        inputField.setPreferredSize(new Dimension(200, 30));
+        inputField.setPreferredSize(new Dimension(250, 30));
         gbc = new GridBagConstraints();
         gbc.gridx = 0;
         gbc.gridy = 0;
