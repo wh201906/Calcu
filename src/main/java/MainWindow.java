@@ -1,9 +1,7 @@
 import javax.swing.*;
 import javax.swing.border.TitledBorder;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.lang.reflect.Array;
+import java.awt.event.*;
 import java.util.Arrays;
 import java.util.Stack;
 import java.util.ArrayList;
@@ -27,19 +25,56 @@ public class MainWindow
     private JButton button0;
     private JButton button_dot;
     private JButton button_equal;
-    private JTextField textField;
+    private JTextField inputField;
     private JButton button_add;
     private JButton button_minus;
     private JButton button_multiply;
     private JButton button_divide;
     private JButton button_mod;
+    private JTextField outputField;
+    private JButton button_clear;
+    private JPanel outputPanel;
+    private JPanel operatorPanel;
+    private JPanel radixPanel;
+    private JRadioButton hexRadioButton;
+    private JRadioButton decRadioButton;
+    private JRadioButton octRadioButton;
+    private JRadioButton binRadioButton;
+
+    private int radix = 10;
 
     private ActionListener inputListener = new ActionListener()
     {
         @Override
         public void actionPerformed(ActionEvent e)
         {
-            textField.setText(textField.getText() + ((JButton) (e.getSource())).getText());
+            inputField.setText(inputField.getText() + ((JButton) (e.getSource())).getText());
+            inputField.grabFocus();
+        }
+    };
+
+    private ItemListener radixListener = new ItemListener()
+    {
+        @Override
+        public void itemStateChanged(ItemEvent e)
+        {
+            Object source = e.getSource();
+            if (source == hexRadioButton)
+            {
+                radix = 16;
+            }
+            else if (source == decRadioButton)
+            {
+                radix = 10;
+            }
+            else if (source == octRadioButton)
+            {
+                radix = 8;
+            }
+            else if (source == binRadioButton)
+            {
+                radix = 2;
+            }
         }
     };
 
@@ -61,8 +96,10 @@ public class MainWindow
             @Override
             public void actionPerformed(ActionEvent e)
             {
-                ArrayList<String> res1 = split(textField.getText());
+                ArrayList<String> res1 = split(inputField.getText());
                 ArrayList<String> res2 = infix2suffix(res1);
+                String res3 = computeSuffix(res2);
+                outputField.setText(res3);
             }
         });
         button_add.addActionListener(inputListener);
@@ -70,6 +107,22 @@ public class MainWindow
         button_multiply.addActionListener(inputListener);
         button_divide.addActionListener(inputListener);
         button_mod.addActionListener(inputListener);
+        inputField.addKeyListener(new KeyAdapter()
+        {
+            @Override
+            public void keyTyped(KeyEvent e)
+            {
+                super.keyTyped(e);
+                if (e.getKeyChar() == KeyEvent.VK_ENTER)
+                {
+                    button_equal.doClick();
+                }
+                else if (e.getKeyChar() == KeyEvent.VK_ESCAPE)
+                {
+                    button_clear.doClick();
+                }
+            }
+        });
 
         operatorList.add(new ArrayList<String>(Arrays.asList("*", "/", "%"))); // 运算符顺序列表可调
         operatorList.add(new ArrayList<String>(Arrays.asList("+", "-")));
@@ -78,14 +131,27 @@ public class MainWindow
         {
             symbolList.addAll(list);
         }
+        button_clear.addActionListener(new ActionListener()
+        {
+            @Override
+            public void actionPerformed(ActionEvent e)
+            {
+                inputField.setText("");
+            }
+        });
+        hexRadioButton.addItemListener(radixListener);
+        decRadioButton.addItemListener(radixListener);
+        octRadioButton.addItemListener(radixListener);
+        binRadioButton.addItemListener(radixListener);
     }
 
     public static void main(String[] args)
     {
-        JFrame frame = new JFrame("MainWindow");
+        JFrame frame = new JFrame("Calculator");
         frame.setContentPane(new MainWindow().mainPanel);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.pack();
+        frame.setResizable(false);
         frame.setVisible(true);
     }
 
@@ -183,6 +249,53 @@ public class MainWindow
         return result;
     }
 
+    private String computeSuffix(ArrayList<String> suffixexp)
+    {
+        Stack<String> stack = new Stack<String>();
+        for (String item : suffixexp)
+        {
+            if (!symbolList.contains(item))
+            {
+                stack.push(item);
+            }
+            else
+            {
+                String b = stack.pop();
+                String a = stack.pop();
+                stack.push(compute(a, b, item)); // 逆序特性
+            }
+        }
+        return stack.isEmpty() ? "" : stack.peek();
+    }
+
+    private String compute(String a, String b, String operator)
+    {
+        Double a_val = Double.valueOf(a);
+        Double b_val = Double.valueOf(b);
+        String result = "";
+        if (operator.equals("+"))
+        {
+            result = String.valueOf(a_val + b_val);
+        }
+        else if (operator.equals("-"))
+        {
+            result = String.valueOf(a_val - b_val);
+        }
+        else if (operator.equals("*"))
+        {
+            result = String.valueOf(a_val * b_val);
+        }
+        else if (operator.equals("/"))
+        {
+            result = String.valueOf(a_val / b_val);
+        }
+        else if (operator.equals("%"))
+        {
+            result = String.valueOf(a_val % b_val);
+        }
+        return result;
+    }
+
     {
 // GUI initializer generated by IntelliJ IDEA GUI Designer
 // >>> IMPORTANT!! <<<
@@ -201,18 +314,20 @@ public class MainWindow
     {
         mainPanel = new JPanel();
         mainPanel.setLayout(new GridBagLayout());
+        mainPanel.setPreferredSize(new Dimension(300, 400));
         final JPanel spacer1 = new JPanel();
         GridBagConstraints gbc;
         gbc = new GridBagConstraints();
         gbc.gridx = 0;
-        gbc.gridy = 3;
+        gbc.gridy = 5;
         gbc.fill = GridBagConstraints.VERTICAL;
         mainPanel.add(spacer1, gbc);
         inputPanel = new JPanel();
         inputPanel.setLayout(new GridBagLayout());
+        inputPanel.setPreferredSize(new Dimension(300, 162));
         gbc = new GridBagConstraints();
         gbc.gridx = 0;
-        gbc.gridy = 4;
+        gbc.gridy = 6;
         gbc.fill = GridBagConstraints.BOTH;
         mainPanel.add(inputPanel, gbc);
         final JPanel spacer2 = new JPanel();
@@ -232,7 +347,6 @@ public class MainWindow
         gbc = new GridBagConstraints();
         gbc.gridx = 4;
         gbc.gridy = 0;
-        gbc.weighty = 1.0;
         gbc.fill = GridBagConstraints.HORIZONTAL;
         inputPanel.add(button3, gbc);
         button4 = new JButton();
@@ -240,7 +354,6 @@ public class MainWindow
         gbc = new GridBagConstraints();
         gbc.gridx = 0;
         gbc.gridy = 2;
-        gbc.weighty = 1.0;
         gbc.fill = GridBagConstraints.HORIZONTAL;
         inputPanel.add(button4, gbc);
         button5 = new JButton();
@@ -248,7 +361,6 @@ public class MainWindow
         gbc = new GridBagConstraints();
         gbc.gridx = 2;
         gbc.gridy = 2;
-        gbc.weighty = 1.0;
         gbc.fill = GridBagConstraints.HORIZONTAL;
         inputPanel.add(button5, gbc);
         button6 = new JButton();
@@ -256,7 +368,6 @@ public class MainWindow
         gbc = new GridBagConstraints();
         gbc.gridx = 4;
         gbc.gridy = 2;
-        gbc.weighty = 1.0;
         gbc.fill = GridBagConstraints.HORIZONTAL;
         inputPanel.add(button6, gbc);
         final JPanel spacer4 = new JPanel();
@@ -276,7 +387,6 @@ public class MainWindow
         gbc = new GridBagConstraints();
         gbc.gridx = 0;
         gbc.gridy = 4;
-        gbc.weighty = 1.0;
         gbc.fill = GridBagConstraints.HORIZONTAL;
         inputPanel.add(button7, gbc);
         final JPanel spacer6 = new JPanel();
@@ -290,7 +400,6 @@ public class MainWindow
         gbc = new GridBagConstraints();
         gbc.gridx = 0;
         gbc.gridy = 6;
-        gbc.weighty = 1.0;
         gbc.fill = GridBagConstraints.HORIZONTAL;
         inputPanel.add(button0, gbc);
         button8 = new JButton();
@@ -298,7 +407,6 @@ public class MainWindow
         gbc = new GridBagConstraints();
         gbc.gridx = 2;
         gbc.gridy = 4;
-        gbc.weighty = 1.0;
         gbc.fill = GridBagConstraints.HORIZONTAL;
         inputPanel.add(button8, gbc);
         button9 = new JButton();
@@ -306,7 +414,6 @@ public class MainWindow
         gbc = new GridBagConstraints();
         gbc.gridx = 4;
         gbc.gridy = 4;
-        gbc.weighty = 1.0;
         gbc.fill = GridBagConstraints.HORIZONTAL;
         inputPanel.add(button9, gbc);
         button_dot = new JButton();
@@ -314,7 +421,6 @@ public class MainWindow
         gbc = new GridBagConstraints();
         gbc.gridx = 2;
         gbc.gridy = 6;
-        gbc.weighty = 1.0;
         gbc.fill = GridBagConstraints.HORIZONTAL;
         inputPanel.add(button_dot, gbc);
         button_equal = new JButton();
@@ -322,7 +428,6 @@ public class MainWindow
         gbc = new GridBagConstraints();
         gbc.gridx = 4;
         gbc.gridy = 6;
-        gbc.weighty = 1.0;
         gbc.fill = GridBagConstraints.HORIZONTAL;
         inputPanel.add(button_equal, gbc);
         button2 = new JButton();
@@ -330,7 +435,6 @@ public class MainWindow
         gbc = new GridBagConstraints();
         gbc.gridx = 2;
         gbc.gridy = 0;
-        gbc.weighty = 1.0;
         gbc.fill = GridBagConstraints.HORIZONTAL;
         inputPanel.add(button2, gbc);
         button1 = new JButton();
@@ -338,95 +442,187 @@ public class MainWindow
         gbc = new GridBagConstraints();
         gbc.gridx = 0;
         gbc.gridy = 0;
-        gbc.weighty = 1.0;
         gbc.fill = GridBagConstraints.HORIZONTAL;
         inputPanel.add(button1, gbc);
-        final JPanel panel1 = new JPanel();
-        panel1.setLayout(new GridBagLayout());
+        operatorPanel = new JPanel();
+        operatorPanel.setLayout(new GridBagLayout());
         gbc = new GridBagConstraints();
         gbc.gridx = 0;
-        gbc.gridy = 2;
+        gbc.gridy = 4;
         gbc.fill = GridBagConstraints.BOTH;
-        mainPanel.add(panel1, gbc);
+        mainPanel.add(operatorPanel, gbc);
         button_add = new JButton();
         button_add.setText("+");
         gbc = new GridBagConstraints();
         gbc.gridx = 0;
         gbc.gridy = 0;
-        gbc.weighty = 1.0;
         gbc.fill = GridBagConstraints.HORIZONTAL;
-        panel1.add(button_add, gbc);
+        operatorPanel.add(button_add, gbc);
         final JPanel spacer7 = new JPanel();
         gbc = new GridBagConstraints();
         gbc.gridx = 1;
         gbc.gridy = 0;
         gbc.fill = GridBagConstraints.HORIZONTAL;
-        panel1.add(spacer7, gbc);
+        operatorPanel.add(spacer7, gbc);
         button_minus = new JButton();
         button_minus.setText("-");
         gbc = new GridBagConstraints();
         gbc.gridx = 2;
         gbc.gridy = 0;
-        gbc.weighty = 1.0;
         gbc.fill = GridBagConstraints.HORIZONTAL;
-        panel1.add(button_minus, gbc);
+        operatorPanel.add(button_minus, gbc);
         button_multiply = new JButton();
         button_multiply.setText("*");
         gbc = new GridBagConstraints();
         gbc.gridx = 4;
         gbc.gridy = 0;
-        gbc.weighty = 1.0;
         gbc.fill = GridBagConstraints.HORIZONTAL;
-        panel1.add(button_multiply, gbc);
+        operatorPanel.add(button_multiply, gbc);
         button_divide = new JButton();
         button_divide.setText("/");
         gbc = new GridBagConstraints();
         gbc.gridx = 6;
         gbc.gridy = 0;
-        gbc.weighty = 1.0;
         gbc.fill = GridBagConstraints.HORIZONTAL;
-        panel1.add(button_divide, gbc);
+        operatorPanel.add(button_divide, gbc);
         button_mod = new JButton();
         button_mod.setText("%");
         gbc = new GridBagConstraints();
         gbc.gridx = 8;
         gbc.gridy = 0;
-        gbc.weighty = 1.0;
         gbc.fill = GridBagConstraints.HORIZONTAL;
-        panel1.add(button_mod, gbc);
+        operatorPanel.add(button_mod, gbc);
         final JPanel spacer8 = new JPanel();
         gbc = new GridBagConstraints();
         gbc.gridx = 3;
         gbc.gridy = 0;
         gbc.fill = GridBagConstraints.HORIZONTAL;
-        panel1.add(spacer8, gbc);
+        operatorPanel.add(spacer8, gbc);
         final JPanel spacer9 = new JPanel();
         gbc = new GridBagConstraints();
         gbc.gridx = 5;
         gbc.gridy = 0;
         gbc.fill = GridBagConstraints.HORIZONTAL;
-        panel1.add(spacer9, gbc);
+        operatorPanel.add(spacer9, gbc);
         final JPanel spacer10 = new JPanel();
         gbc = new GridBagConstraints();
         gbc.gridx = 7;
         gbc.gridy = 0;
         gbc.fill = GridBagConstraints.HORIZONTAL;
-        panel1.add(spacer10, gbc);
+        operatorPanel.add(spacer10, gbc);
         final JPanel spacer11 = new JPanel();
+        gbc = new GridBagConstraints();
+        gbc.gridx = 0;
+        gbc.gridy = 3;
+        gbc.fill = GridBagConstraints.VERTICAL;
+        mainPanel.add(spacer11, gbc);
+        radixPanel = new JPanel();
+        radixPanel.setLayout(new GridBagLayout());
+        gbc = new GridBagConstraints();
+        gbc.gridx = 0;
+        gbc.gridy = 2;
+        gbc.fill = GridBagConstraints.BOTH;
+        mainPanel.add(radixPanel, gbc);
+        radixPanel.setBorder(BorderFactory.createTitledBorder(null, "Radix", TitledBorder.DEFAULT_JUSTIFICATION, TitledBorder.DEFAULT_POSITION, null, null));
+        hexRadioButton = new JRadioButton();
+        hexRadioButton.setText("Hex");
+        gbc = new GridBagConstraints();
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.anchor = GridBagConstraints.WEST;
+        radixPanel.add(hexRadioButton, gbc);
+        final JPanel spacer12 = new JPanel();
+        gbc = new GridBagConstraints();
+        gbc.gridx = 1;
+        gbc.gridy = 0;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        radixPanel.add(spacer12, gbc);
+        decRadioButton = new JRadioButton();
+        decRadioButton.setSelected(true);
+        decRadioButton.setText("Dec");
+        gbc = new GridBagConstraints();
+        gbc.gridx = 2;
+        gbc.gridy = 0;
+        gbc.anchor = GridBagConstraints.WEST;
+        radixPanel.add(decRadioButton, gbc);
+        octRadioButton = new JRadioButton();
+        octRadioButton.setText("Oct");
+        gbc = new GridBagConstraints();
+        gbc.gridx = 4;
+        gbc.gridy = 0;
+        gbc.anchor = GridBagConstraints.WEST;
+        radixPanel.add(octRadioButton, gbc);
+        binRadioButton = new JRadioButton();
+        binRadioButton.setText("Bin");
+        gbc = new GridBagConstraints();
+        gbc.gridx = 6;
+        gbc.gridy = 0;
+        gbc.anchor = GridBagConstraints.WEST;
+        radixPanel.add(binRadioButton, gbc);
+        final JPanel spacer13 = new JPanel();
+        gbc = new GridBagConstraints();
+        gbc.gridx = 3;
+        gbc.gridy = 0;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        radixPanel.add(spacer13, gbc);
+        final JPanel spacer14 = new JPanel();
+        gbc = new GridBagConstraints();
+        gbc.gridx = 5;
+        gbc.gridy = 0;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        radixPanel.add(spacer14, gbc);
+        final JPanel spacer15 = new JPanel();
         gbc = new GridBagConstraints();
         gbc.gridx = 0;
         gbc.gridy = 1;
         gbc.fill = GridBagConstraints.VERTICAL;
-        mainPanel.add(spacer11, gbc);
-        textField = new JTextField();
-        textField.setHorizontalAlignment(4);
+        mainPanel.add(spacer15, gbc);
+        outputPanel = new JPanel();
+        outputPanel.setLayout(new GridBagLayout());
+        outputPanel.setPreferredSize(new Dimension(300, 60));
         gbc = new GridBagConstraints();
         gbc.gridx = 0;
         gbc.gridy = 0;
-        gbc.weighty = 2.0;
+        gbc.fill = GridBagConstraints.BOTH;
+        mainPanel.add(outputPanel, gbc);
+        outputField = new JTextField();
+        outputField.setEditable(false);
+        outputField.setHorizontalAlignment(4);
+        outputField.setOpaque(true);
+        outputField.setPreferredSize(new Dimension(200, 30));
+        gbc = new GridBagConstraints();
+        gbc.gridx = 0;
+        gbc.gridy = 1;
         gbc.anchor = GridBagConstraints.WEST;
         gbc.fill = GridBagConstraints.HORIZONTAL;
-        mainPanel.add(textField, gbc);
+        outputPanel.add(outputField, gbc);
+        inputField = new JTextField();
+        inputField.setHorizontalAlignment(4);
+        inputField.setOpaque(true);
+        inputField.setPreferredSize(new Dimension(200, 30));
+        gbc = new GridBagConstraints();
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.anchor = GridBagConstraints.WEST;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        outputPanel.add(inputField, gbc);
+        button_clear = new JButton();
+        button_clear.setMaximumSize(new Dimension(75, 30));
+        button_clear.setMinimumSize(new Dimension(75, 30));
+        button_clear.setOpaque(true);
+        button_clear.setPreferredSize(new Dimension(75, 30));
+        button_clear.setText("Clear");
+        gbc = new GridBagConstraints();
+        gbc.gridx = 1;
+        gbc.gridy = 0;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        outputPanel.add(button_clear, gbc);
+        ButtonGroup buttonGroup;
+        buttonGroup = new ButtonGroup();
+        buttonGroup.add(hexRadioButton);
+        buttonGroup.add(decRadioButton);
+        buttonGroup.add(octRadioButton);
+        buttonGroup.add(binRadioButton);
     }
 
     /**
