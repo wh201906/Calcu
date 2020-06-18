@@ -237,59 +237,79 @@ public class MainWindow
             {
                 result.add(item);
             }
-            else
+            else if (!item.equals("(") && !item.equals(")")) // 如果是普通运算符，则进行进一步判断
             {
-                if (!item.equals("(") && !item.equals(")")) // 如果是普通运算符，则进行进一步判断
+                // 当前操作符优先级小于等于栈顶操作符时，弹出栈顶操作符
+                CmpResult cmpResult = stack.isEmpty() ? CmpResult.CMP_ERROR : operatorCmp(item, stack.peek());
+                while (cmpResult == CmpResult.CMP_BELOW || cmpResult == CmpResult.CMP_EQUAL)
                 {
-                    for (int i = 0; i < operatorList.size(); i++)
-                    {
-                        if (operatorList.get(i).contains(item)) // 在运算符列表中查找当前运算符
-                        {
-                            String topOperator = "";
-                            int j = 0;
-                            do
-                            {
-                                if (stack.isEmpty())
-                                {
-                                    break;
-                                }
-                                topOperator = stack.peek(); // 获取栈顶运算符
-                                for (j = 0; j <= i; j++) // 在优先级大于等于当前运算符的列表中进行查找
-                                {
-                                    if (operatorList.get(j).contains(topOperator))
-                                    {
-                                        break;
-                                    }
-                                }
-                                if (j <= i) // 如果栈顶运算符优先级大于等于当前运算符，则将其弹出并加入返回列表，循环这一过程
-                                {
-                                    result.add(stack.pop()); // 当中暗含了同运算级时的从左到右运算法则
-                                }
-                            } while (j <= i);
-                            stack.add(item);
-                            break;
-                        }
-                    }
+                    result.add(stack.pop());
+                    cmpResult = stack.isEmpty() ? CmpResult.CMP_ERROR : operatorCmp(item, stack.peek());
                 }
-                else if (item.equals("(")) // 如果是左括号，则直接入栈，作为标记
-                {
-                    stack.push(item);
-                }
-                else // 如果是右括号，则将栈顶运算符直接弹出直至遇到左括号
-                {
-                    while (!stack.peek().equals("("))
-                    {
-                        result.add(stack.pop());
-                    }
-                    stack.pop(); // 处理完括号内运算符后丢弃左括号
-                }
+                stack.push(item);
             }
+            else if (item.equals("(")) // 如果是左括号，则直接入栈，作为标记
+            {
+                stack.push(item);
+            }
+            else // 如果是右括号，则将栈顶运算符直接弹出直至遇到左括号
+            {
+                while (!stack.peek().equals("("))
+                {
+                    result.add(stack.pop());
+                }
+                stack.pop(); // 处理完括号内运算符后丢弃左括号
+            }
+
         }
         while (!stack.isEmpty()) // 将栈中内容一次输出至返回列表
         {
             result.add(stack.pop());
         }
         return result;
+    }
+
+    private enum CmpResult
+    {
+        CMP_ERROR, CMP_BELOW, CMP_EQUAL, CMP_ABOVE
+    }
+
+    private CmpResult operatorCmp(String a, String b)
+    {
+        int a_level = -1;
+        int b_level = -1;
+        for (int i = 0; i < operatorList.size(); i++)
+        {
+            if (operatorList.get(i).contains(a))
+            {
+                a_level = i;
+                break;
+            }
+        }
+        for (int j = 0; j < operatorList.size(); j++)
+        {
+            if (operatorList.get(j).contains(b))
+            {
+                b_level = j;
+                break;
+            }
+        }
+        if (a_level == -1 || b_level == -1)
+        {
+            return CmpResult.CMP_ERROR;
+        }
+        else if (a_level > b_level) // 从0到n优先级降低，则level值越大优先级越低
+        {
+            return CmpResult.CMP_BELOW;
+        }
+        else if (a_level == b_level)
+        {
+            return CmpResult.CMP_EQUAL;
+        }
+        else // a_level < b_level
+        {
+            return CmpResult.CMP_ABOVE;
+        }
     }
 
     private String computeSuffix(ArrayList<String> suffixexp)
