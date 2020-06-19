@@ -23,7 +23,7 @@
         <properties>
           <preferredSize width="350" height="45"/>
         </properties>
-        <border type="none" title="Radix"/>
+        <border type="line" title="Radix"/>
         <children>
           <component id="3e649" class="javax.swing.JRadioButton" binding="hexRadioButton" default-binding="true">
             <constraints>

@@ -194,6 +194,7 @@ public class MainWindow
             }
         });
 
+
         operatorList.add(new ArrayList<String>(Collections.singletonList("^")));
         operatorList.add(new ArrayList<String>(Arrays.asList("*", "/", "%"))); // 运算符顺序列表可调
         operatorList.add(new ArrayList<String>(Arrays.asList("+", "-")));
@@ -510,7 +511,7 @@ public class MainWindow
         gbc.gridy = 2;
         gbc.fill = GridBagConstraints.BOTH;
         mainPanel.add(radixPanel, gbc);
-        radixPanel.setBorder(BorderFactory.createTitledBorder(null, "Radix", TitledBorder.DEFAULT_JUSTIFICATION, TitledBorder.DEFAULT_POSITION, null, null));
+        radixPanel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createLineBorder(Color.black), "Radix", TitledBorder.DEFAULT_JUSTIFICATION, TitledBorder.DEFAULT_POSITION, null, null));
         hexRadioButton = new JRadioButton();
         hexRadioButton.setFocusable(false);
         hexRadioButton.setText("Hex");
