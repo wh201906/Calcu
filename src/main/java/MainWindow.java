@@ -3,6 +3,7 @@ import javax.swing.border.TitledBorder;
 import java.awt.*;
 import java.awt.event.*;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Stack;
 import java.util.ArrayList;
 
@@ -12,7 +13,7 @@ public class MainWindow
     private ArrayList<ArrayList<String>> operatorList = new ArrayList<>();
 
     private JPanel mainPanel;
-    private JPanel inputPanel;
+    private JPanel digitPanel;
     private JButton button1;
     private JButton button2;
     private JButton button3;
@@ -42,6 +43,12 @@ public class MainWindow
     private JRadioButton binRadioButton;
     private JButton button_left;
     private JButton button_right;
+    private JButton button_pow;
+    private JButton button_and;
+    private JButton button_or;
+    private JButton button_lShift;
+    private JButton button_rShift;
+    private JPanel inputPanel;
 
     private int lastRadix = 10;
     private int radix = 10;
@@ -117,9 +124,13 @@ public class MainWindow
                 ArrayList<String> res1;
                 ArrayList<String> res2;
                 String res3 = "";
+                if (inputField.getText().trim().isEmpty())
+                {
+                    return;
+                }
                 try
                 {
-                    res1 = split(inputField.getText());
+                    res1 = split(inputField.getText().trim());
                     res2 = infix2suffix(res1);
                     res3 = computeSuffix(res2);
                 } catch (Exception exception)
@@ -144,6 +155,27 @@ public class MainWindow
         button_mod.addActionListener(inputListener);
         button_left.addActionListener(inputListener);
         button_right.addActionListener(inputListener);
+        button_lShift.addActionListener(inputListener);
+        button_rShift.addActionListener(inputListener);
+        button_pow.addActionListener(inputListener);
+        button_and.addActionListener(new ActionListener()
+        {
+            @Override
+            public void actionPerformed(ActionEvent e)
+            {
+                inputField.setText(inputField.getText() + "&");
+                inputField.grabFocus();
+            }
+        });
+        button_or.addActionListener(new ActionListener()
+        {
+            @Override
+            public void actionPerformed(ActionEvent e)
+            {
+                inputField.setText(inputField.getText() + "|");
+                inputField.grabFocus();
+            }
+        });
 
         inputField.addKeyListener(new KeyAdapter()
         {
@@ -162,9 +194,12 @@ public class MainWindow
             }
         });
 
+        operatorList.add(new ArrayList<String>(Collections.singletonList("^")));
         operatorList.add(new ArrayList<String>(Arrays.asList("*", "/", "%"))); // 运算符顺序列表可调
         operatorList.add(new ArrayList<String>(Arrays.asList("+", "-")));
-//        operatorList.add(new ArrayList<String>(Arrays.asList("<<",">>")));
+        operatorList.add(new ArrayList<String>(Arrays.asList("<<", ">>")));
+        operatorList.add(new ArrayList<String>(Collections.singletonList("&")));
+        operatorList.add(new ArrayList<String>(Collections.singletonList("|")));
         for (ArrayList<String> list : operatorList)
         {
             symbolList.addAll(list);
@@ -196,33 +231,87 @@ public class MainWindow
     private ArrayList<String> split(String exp)
     {
         String expression = exp.trim();
+        ArrayList<String> morphemes = new ArrayList<String>();
         ArrayList<String> result = new ArrayList<String>();
         StringBuffer temp = new StringBuffer();
-        for (int i = 0; i < expression.length(); i++)
+        ArrayList<Integer> symbolPos = new ArrayList<Integer>();
+        ArrayList<Integer> symbolLen = new ArrayList<Integer>();
+
+        int offset = 0;
+        int firstSymbolPos = expression.length();
+        int firstSymbolLen = 0;
+        boolean symbolFound = false;
+
+        do
         {
-            String sub = expression.substring(i, i + 1);
-            if (symbolList.contains(sub))
+            symbolFound = false;
+            firstSymbolPos = expression.length();
+            firstSymbolLen = 0;
+            for (String symbol : symbolList)
             {
-                if (!temp.toString().equals(""))
+                int curr = expression.indexOf(symbol, offset);
+                if (curr != -1 && curr < firstSymbolPos)
                 {
-                    result.add(temp.toString());
+                    symbolFound = true;
+                    firstSymbolPos = curr;
+                    firstSymbolLen = symbol.length();
                 }
-                if ((result.size() == 0 || symbolList.contains(result.get(result.size() - 1))) && sub.equals("-"))
-                {
-                    result.add("0");
-                }
-                result.add(sub);
-                temp.delete(0, temp.length());
             }
-            else
+            if (symbolFound)
             {
-                temp.append(sub);
+                offset = firstSymbolPos + firstSymbolLen;
+                symbolPos.add(firstSymbolPos);
+                symbolLen.add(firstSymbolLen);
+            }
+        } while (symbolFound);
+
+        offset = 0;
+        String substr = "";
+        int symbolCoun = symbolPos.size() - 1;
+
+
+        substr = symbolPos.size() > 0 ? expression.substring(0, symbolPos.get(0)) : expression;
+        if (!substr.isEmpty())
+        {
+            morphemes.add(substr);
+        }
+
+        for (int i = 0; i < symbolCoun; i++)
+        {
+            substr = expression.substring(symbolPos.get(i), symbolPos.get(i) + symbolLen.get(i));
+            morphemes.add(substr);
+            substr = expression.substring(symbolPos.get(i) + symbolLen.get(i), symbolPos.get(i + 1));
+            if (!substr.isEmpty())
+            {
+                morphemes.add(substr);
             }
         }
-        if (!temp.toString().equals(""))
+
+        if (symbolPos.size() > 0)
         {
-            result.add(temp.toString());
+            substr = expression.substring(symbolPos.get(symbolCoun), symbolPos.get(symbolCoun) + symbolLen.get(symbolCoun));
+            morphemes.add(substr);
+            substr = expression.substring(symbolPos.get(symbolCoun) + symbolLen.get(symbolCoun));
+            if (!substr.isEmpty())
+            {
+                morphemes.add(substr);
+            }
         }
+
+        if (morphemes.get(0).equals("-"))
+        {
+            result.add("0");
+        }
+
+        for (int i = 0; i < morphemes.size(); i++)
+        {
+            if ((i == 0 || symbolList.contains(morphemes.get(i - 1))) && morphemes.get(i).equals("-"))
+            {
+                result.add("0");
+            }
+            result.add(morphemes.get(i));
+        }
+
         return result;
     }
 
@@ -333,9 +422,10 @@ public class MainWindow
 
     private String compute(String a, String b, String operator)
     {
-        Double a_val = Double.valueOf(a);
-        Double b_val = Double.valueOf(b);
-        double result = 0;
+
+        double a_val = Double.parseDouble(a);
+        double b_val = Double.parseDouble(b);
+        double result = (double) 0;
         if (operator.equals("+"))
         {
             result = a_val + b_val;
@@ -355,6 +445,26 @@ public class MainWindow
         else if (operator.equals("%"))
         {
             result = a_val % b_val;
+        }
+        else if (operator.equals("<<"))
+        {
+            result = (double) ((int) (a_val + 0.5) << (int) (b_val + 0.5));
+        }
+        else if (operator.equals(">>"))
+        {
+            result = (double) ((int) (a_val + 0.5) >> (int) (b_val + 0.5));
+        }
+        else if (operator.equals("&"))
+        {
+            result = (double) ((int) (a_val + 0.5) & (int) (b_val + 0.5));
+        }
+        else if (operator.equals("|"))
+        {
+            result = (double) ((int) (a_val + 0.5) | (int) (b_val + 0.5));
+        }
+        else if (operator.equals("^"))
+        {
+            result = Math.pow(a_val, b_val);
         }
         if (Math.floor(result) == Math.ceil(result))
         {
@@ -384,234 +494,14 @@ public class MainWindow
     {
         mainPanel = new JPanel();
         mainPanel.setLayout(new GridBagLayout());
-        mainPanel.setPreferredSize(new Dimension(350, 400));
+        mainPanel.setPreferredSize(new Dimension(400, 400));
         final JPanel spacer1 = new JPanel();
         GridBagConstraints gbc;
         gbc = new GridBagConstraints();
         gbc.gridx = 0;
-        gbc.gridy = 5;
+        gbc.gridy = 3;
         gbc.fill = GridBagConstraints.VERTICAL;
         mainPanel.add(spacer1, gbc);
-        inputPanel = new JPanel();
-        inputPanel.setLayout(new GridBagLayout());
-        inputPanel.setPreferredSize(new Dimension(300, 162));
-        gbc = new GridBagConstraints();
-        gbc.gridx = 0;
-        gbc.gridy = 6;
-        gbc.fill = GridBagConstraints.BOTH;
-        mainPanel.add(inputPanel, gbc);
-        final JPanel spacer2 = new JPanel();
-        gbc = new GridBagConstraints();
-        gbc.gridx = 1;
-        gbc.gridy = 0;
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        inputPanel.add(spacer2, gbc);
-        final JPanel spacer3 = new JPanel();
-        gbc = new GridBagConstraints();
-        gbc.gridx = 0;
-        gbc.gridy = 1;
-        gbc.fill = GridBagConstraints.VERTICAL;
-        inputPanel.add(spacer3, gbc);
-        button3 = new JButton();
-        button3.setText("3");
-        gbc = new GridBagConstraints();
-        gbc.gridx = 4;
-        gbc.gridy = 0;
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        inputPanel.add(button3, gbc);
-        button4 = new JButton();
-        button4.setText("4");
-        gbc = new GridBagConstraints();
-        gbc.gridx = 0;
-        gbc.gridy = 2;
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        inputPanel.add(button4, gbc);
-        button5 = new JButton();
-        button5.setText("5");
-        gbc = new GridBagConstraints();
-        gbc.gridx = 2;
-        gbc.gridy = 2;
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        inputPanel.add(button5, gbc);
-        button6 = new JButton();
-        button6.setText("6");
-        gbc = new GridBagConstraints();
-        gbc.gridx = 4;
-        gbc.gridy = 2;
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        inputPanel.add(button6, gbc);
-        final JPanel spacer4 = new JPanel();
-        gbc = new GridBagConstraints();
-        gbc.gridx = 3;
-        gbc.gridy = 0;
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        inputPanel.add(spacer4, gbc);
-        final JPanel spacer5 = new JPanel();
-        gbc = new GridBagConstraints();
-        gbc.gridx = 0;
-        gbc.gridy = 3;
-        gbc.fill = GridBagConstraints.VERTICAL;
-        inputPanel.add(spacer5, gbc);
-        button7 = new JButton();
-        button7.setText("7");
-        gbc = new GridBagConstraints();
-        gbc.gridx = 0;
-        gbc.gridy = 4;
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        inputPanel.add(button7, gbc);
-        final JPanel spacer6 = new JPanel();
-        gbc = new GridBagConstraints();
-        gbc.gridx = 0;
-        gbc.gridy = 5;
-        gbc.fill = GridBagConstraints.VERTICAL;
-        inputPanel.add(spacer6, gbc);
-        button0 = new JButton();
-        button0.setText("0");
-        gbc = new GridBagConstraints();
-        gbc.gridx = 0;
-        gbc.gridy = 6;
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        inputPanel.add(button0, gbc);
-        button8 = new JButton();
-        button8.setText("8");
-        gbc = new GridBagConstraints();
-        gbc.gridx = 2;
-        gbc.gridy = 4;
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        inputPanel.add(button8, gbc);
-        button9 = new JButton();
-        button9.setText("9");
-        gbc = new GridBagConstraints();
-        gbc.gridx = 4;
-        gbc.gridy = 4;
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        inputPanel.add(button9, gbc);
-        button_dot = new JButton();
-        button_dot.setText(".");
-        gbc = new GridBagConstraints();
-        gbc.gridx = 2;
-        gbc.gridy = 6;
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        inputPanel.add(button_dot, gbc);
-        button_equal = new JButton();
-        button_equal.setText("=");
-        gbc = new GridBagConstraints();
-        gbc.gridx = 4;
-        gbc.gridy = 6;
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        inputPanel.add(button_equal, gbc);
-        button2 = new JButton();
-        button2.setText("2");
-        gbc = new GridBagConstraints();
-        gbc.gridx = 2;
-        gbc.gridy = 0;
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        inputPanel.add(button2, gbc);
-        button1 = new JButton();
-        button1.setText("1");
-        gbc = new GridBagConstraints();
-        gbc.gridx = 0;
-        gbc.gridy = 0;
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        inputPanel.add(button1, gbc);
-        operatorPanel = new JPanel();
-        operatorPanel.setLayout(new GridBagLayout());
-        gbc = new GridBagConstraints();
-        gbc.gridx = 0;
-        gbc.gridy = 4;
-        gbc.fill = GridBagConstraints.BOTH;
-        mainPanel.add(operatorPanel, gbc);
-        button_add = new JButton();
-        button_add.setText("+");
-        gbc = new GridBagConstraints();
-        gbc.gridx = 0;
-        gbc.gridy = 0;
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        operatorPanel.add(button_add, gbc);
-        final JPanel spacer7 = new JPanel();
-        gbc = new GridBagConstraints();
-        gbc.gridx = 1;
-        gbc.gridy = 0;
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        operatorPanel.add(spacer7, gbc);
-        button_minus = new JButton();
-        button_minus.setText("-");
-        gbc = new GridBagConstraints();
-        gbc.gridx = 2;
-        gbc.gridy = 0;
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        operatorPanel.add(button_minus, gbc);
-        button_multiply = new JButton();
-        button_multiply.setText("*");
-        gbc = new GridBagConstraints();
-        gbc.gridx = 4;
-        gbc.gridy = 0;
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        operatorPanel.add(button_multiply, gbc);
-        button_divide = new JButton();
-        button_divide.setText("/");
-        gbc = new GridBagConstraints();
-        gbc.gridx = 6;
-        gbc.gridy = 0;
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        operatorPanel.add(button_divide, gbc);
-        button_mod = new JButton();
-        button_mod.setText("%");
-        gbc = new GridBagConstraints();
-        gbc.gridx = 8;
-        gbc.gridy = 0;
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        operatorPanel.add(button_mod, gbc);
-        final JPanel spacer8 = new JPanel();
-        gbc = new GridBagConstraints();
-        gbc.gridx = 3;
-        gbc.gridy = 0;
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        operatorPanel.add(spacer8, gbc);
-        final JPanel spacer9 = new JPanel();
-        gbc = new GridBagConstraints();
-        gbc.gridx = 5;
-        gbc.gridy = 0;
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        operatorPanel.add(spacer9, gbc);
-        final JPanel spacer10 = new JPanel();
-        gbc = new GridBagConstraints();
-        gbc.gridx = 7;
-        gbc.gridy = 0;
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        operatorPanel.add(spacer10, gbc);
-        button_left = new JButton();
-        button_left.setText("(");
-        gbc = new GridBagConstraints();
-        gbc.gridx = 10;
-        gbc.gridy = 0;
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        operatorPanel.add(button_left, gbc);
-        button_right = new JButton();
-        button_right.setText(")");
-        gbc = new GridBagConstraints();
-        gbc.gridx = 12;
-        gbc.gridy = 0;
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        operatorPanel.add(button_right, gbc);
-        final JPanel spacer11 = new JPanel();
-        gbc = new GridBagConstraints();
-        gbc.gridx = 9;
-        gbc.gridy = 0;
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        operatorPanel.add(spacer11, gbc);
-        final JPanel spacer12 = new JPanel();
-        gbc = new GridBagConstraints();
-        gbc.gridx = 11;
-        gbc.gridy = 0;
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        operatorPanel.add(spacer12, gbc);
-        final JPanel spacer13 = new JPanel();
-        gbc = new GridBagConstraints();
-        gbc.gridx = 0;
-        gbc.gridy = 3;
-        gbc.fill = GridBagConstraints.VERTICAL;
-        mainPanel.add(spacer13, gbc);
         radixPanel = new JPanel();
         radixPanel.setLayout(new GridBagLayout());
         radixPanel.setPreferredSize(new Dimension(350, 45));
@@ -629,12 +519,12 @@ public class MainWindow
         gbc.gridy = 0;
         gbc.anchor = GridBagConstraints.WEST;
         radixPanel.add(hexRadioButton, gbc);
-        final JPanel spacer14 = new JPanel();
+        final JPanel spacer2 = new JPanel();
         gbc = new GridBagConstraints();
         gbc.gridx = 1;
         gbc.gridy = 0;
         gbc.fill = GridBagConstraints.HORIZONTAL;
-        radixPanel.add(spacer14, gbc);
+        radixPanel.add(spacer2, gbc);
         decRadioButton = new JRadioButton();
         decRadioButton.setFocusable(false);
         decRadioButton.setSelected(true);
@@ -660,24 +550,24 @@ public class MainWindow
         gbc.gridy = 0;
         gbc.anchor = GridBagConstraints.WEST;
         radixPanel.add(binRadioButton, gbc);
-        final JPanel spacer15 = new JPanel();
+        final JPanel spacer3 = new JPanel();
         gbc = new GridBagConstraints();
         gbc.gridx = 3;
         gbc.gridy = 0;
         gbc.fill = GridBagConstraints.HORIZONTAL;
-        radixPanel.add(spacer15, gbc);
-        final JPanel spacer16 = new JPanel();
+        radixPanel.add(spacer3, gbc);
+        final JPanel spacer4 = new JPanel();
         gbc = new GridBagConstraints();
         gbc.gridx = 5;
         gbc.gridy = 0;
         gbc.fill = GridBagConstraints.HORIZONTAL;
-        radixPanel.add(spacer16, gbc);
-        final JPanel spacer17 = new JPanel();
+        radixPanel.add(spacer4, gbc);
+        final JPanel spacer5 = new JPanel();
         gbc = new GridBagConstraints();
         gbc.gridx = 0;
         gbc.gridy = 1;
         gbc.fill = GridBagConstraints.VERTICAL;
-        mainPanel.add(spacer17, gbc);
+        mainPanel.add(spacer5, gbc);
         outputPanel = new JPanel();
         outputPanel.setLayout(new GridBagLayout());
         outputPanel.setPreferredSize(new Dimension(350, 60));
@@ -718,6 +608,329 @@ public class MainWindow
         gbc.gridy = 0;
         gbc.fill = GridBagConstraints.HORIZONTAL;
         outputPanel.add(button_clear, gbc);
+        inputPanel = new JPanel();
+        inputPanel.setLayout(new GridBagLayout());
+        inputPanel.setMinimumSize(new Dimension(200, 208));
+        inputPanel.setPreferredSize(new Dimension(400, 208));
+        gbc = new GridBagConstraints();
+        gbc.gridx = 0;
+        gbc.gridy = 4;
+        gbc.fill = GridBagConstraints.BOTH;
+        mainPanel.add(inputPanel, gbc);
+        final JPanel spacer6 = new JPanel();
+        gbc = new GridBagConstraints();
+        gbc.gridx = 1;
+        gbc.gridy = 0;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        inputPanel.add(spacer6, gbc);
+        operatorPanel = new JPanel();
+        operatorPanel.setLayout(new GridBagLayout());
+        operatorPanel.setPreferredSize(new Dimension(150, 208));
+        gbc = new GridBagConstraints();
+        gbc.gridx = 2;
+        gbc.gridy = 0;
+        gbc.fill = GridBagConstraints.BOTH;
+        inputPanel.add(operatorPanel, gbc);
+        button_add = new JButton();
+        button_add.setMaximumSize(new Dimension(100, 30));
+        button_add.setMinimumSize(new Dimension(20, 30));
+        button_add.setPreferredSize(new Dimension(60, 30));
+        button_add.setText("+");
+        gbc = new GridBagConstraints();
+        gbc.gridx = 0;
+        gbc.gridy = 2;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        operatorPanel.add(button_add, gbc);
+        final JPanel spacer7 = new JPanel();
+        gbc = new GridBagConstraints();
+        gbc.gridx = 1;
+        gbc.gridy = 2;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        operatorPanel.add(spacer7, gbc);
+        button_minus = new JButton();
+        button_minus.setMaximumSize(new Dimension(100, 30));
+        button_minus.setMinimumSize(new Dimension(20, 30));
+        button_minus.setPreferredSize(new Dimension(60, 30));
+        button_minus.setText("-");
+        gbc = new GridBagConstraints();
+        gbc.gridx = 2;
+        gbc.gridy = 2;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        operatorPanel.add(button_minus, gbc);
+        button_left = new JButton();
+        button_left.setMaximumSize(new Dimension(100, 30));
+        button_left.setMinimumSize(new Dimension(20, 30));
+        button_left.setPreferredSize(new Dimension(60, 30));
+        button_left.setText("(");
+        gbc = new GridBagConstraints();
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        operatorPanel.add(button_left, gbc);
+        button_right = new JButton();
+        button_right.setMaximumSize(new Dimension(100, 30));
+        button_right.setMinimumSize(new Dimension(20, 30));
+        button_right.setPreferredSize(new Dimension(60, 30));
+        button_right.setText(")");
+        gbc = new GridBagConstraints();
+        gbc.gridx = 2;
+        gbc.gridy = 0;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        operatorPanel.add(button_right, gbc);
+        button_multiply = new JButton();
+        button_multiply.setMaximumSize(new Dimension(100, 30));
+        button_multiply.setMinimumSize(new Dimension(20, 30));
+        button_multiply.setPreferredSize(new Dimension(60, 30));
+        button_multiply.setText("*");
+        gbc = new GridBagConstraints();
+        gbc.gridx = 0;
+        gbc.gridy = 3;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        operatorPanel.add(button_multiply, gbc);
+        button_divide = new JButton();
+        button_divide.setMaximumSize(new Dimension(100, 30));
+        button_divide.setMinimumSize(new Dimension(20, 30));
+        button_divide.setPreferredSize(new Dimension(60, 30));
+        button_divide.setText("/");
+        gbc = new GridBagConstraints();
+        gbc.gridx = 2;
+        gbc.gridy = 3;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        operatorPanel.add(button_divide, gbc);
+        button_mod = new JButton();
+        button_mod.setMaximumSize(new Dimension(100, 30));
+        button_mod.setMinimumSize(new Dimension(20, 30));
+        button_mod.setPreferredSize(new Dimension(60, 30));
+        button_mod.setText("%");
+        gbc = new GridBagConstraints();
+        gbc.gridx = 0;
+        gbc.gridy = 4;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        operatorPanel.add(button_mod, gbc);
+        button_pow = new JButton();
+        button_pow.setMaximumSize(new Dimension(100, 30));
+        button_pow.setMinimumSize(new Dimension(20, 30));
+        button_pow.setPreferredSize(new Dimension(60, 30));
+        button_pow.setText("^");
+        gbc = new GridBagConstraints();
+        gbc.gridx = 2;
+        gbc.gridy = 4;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        operatorPanel.add(button_pow, gbc);
+        button_and = new JButton();
+        button_and.setActionCommand("AND");
+        button_and.setLabel("AND");
+        button_and.setMaximumSize(new Dimension(100, 30));
+        button_and.setMinimumSize(new Dimension(20, 30));
+        button_and.setPreferredSize(new Dimension(60, 30));
+        button_and.setRequestFocusEnabled(true);
+        button_and.setText("AND");
+        gbc = new GridBagConstraints();
+        gbc.gridx = 0;
+        gbc.gridy = 6;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        operatorPanel.add(button_and, gbc);
+        button_or = new JButton();
+        button_or.setMaximumSize(new Dimension(100, 30));
+        button_or.setMinimumSize(new Dimension(20, 30));
+        button_or.setPreferredSize(new Dimension(60, 30));
+        button_or.setRequestFocusEnabled(true);
+        button_or.setText("OR");
+        gbc = new GridBagConstraints();
+        gbc.gridx = 2;
+        gbc.gridy = 6;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        operatorPanel.add(button_or, gbc);
+        button_lShift = new JButton();
+        button_lShift.setMaximumSize(new Dimension(100, 30));
+        button_lShift.setMinimumSize(new Dimension(20, 30));
+        button_lShift.setPreferredSize(new Dimension(60, 30));
+        button_lShift.setText("<<");
+        gbc = new GridBagConstraints();
+        gbc.gridx = 0;
+        gbc.gridy = 7;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        operatorPanel.add(button_lShift, gbc);
+        button_rShift = new JButton();
+        button_rShift.setMaximumSize(new Dimension(100, 30));
+        button_rShift.setMinimumSize(new Dimension(20, 30));
+        button_rShift.setPreferredSize(new Dimension(60, 30));
+        button_rShift.setText(">>");
+        gbc = new GridBagConstraints();
+        gbc.gridx = 2;
+        gbc.gridy = 7;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        operatorPanel.add(button_rShift, gbc);
+        final JPanel spacer8 = new JPanel();
+        gbc = new GridBagConstraints();
+        gbc.gridx = 0;
+        gbc.gridy = 5;
+        gbc.fill = GridBagConstraints.VERTICAL;
+        operatorPanel.add(spacer8, gbc);
+        final JPanel spacer9 = new JPanel();
+        gbc = new GridBagConstraints();
+        gbc.gridx = 0;
+        gbc.gridy = 1;
+        gbc.fill = GridBagConstraints.VERTICAL;
+        operatorPanel.add(spacer9, gbc);
+        digitPanel = new JPanel();
+        digitPanel.setLayout(new GridBagLayout());
+        digitPanel.setPreferredSize(new Dimension(200, 162));
+        gbc = new GridBagConstraints();
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.fill = GridBagConstraints.BOTH;
+        inputPanel.add(digitPanel, gbc);
+        final JPanel spacer10 = new JPanel();
+        gbc = new GridBagConstraints();
+        gbc.gridx = 1;
+        gbc.gridy = 0;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        digitPanel.add(spacer10, gbc);
+        final JPanel spacer11 = new JPanel();
+        gbc = new GridBagConstraints();
+        gbc.gridx = 0;
+        gbc.gridy = 1;
+        gbc.fill = GridBagConstraints.VERTICAL;
+        digitPanel.add(spacer11, gbc);
+        button3 = new JButton();
+        button3.setMaximumSize(new Dimension(100, 30));
+        button3.setMinimumSize(new Dimension(20, 30));
+        button3.setPreferredSize(new Dimension(50, 30));
+        button3.setText("3");
+        gbc = new GridBagConstraints();
+        gbc.gridx = 4;
+        gbc.gridy = 0;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        digitPanel.add(button3, gbc);
+        button4 = new JButton();
+        button4.setMaximumSize(new Dimension(100, 30));
+        button4.setMinimumSize(new Dimension(20, 30));
+        button4.setPreferredSize(new Dimension(50, 30));
+        button4.setText("4");
+        gbc = new GridBagConstraints();
+        gbc.gridx = 0;
+        gbc.gridy = 2;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        digitPanel.add(button4, gbc);
+        button5 = new JButton();
+        button5.setMaximumSize(new Dimension(100, 30));
+        button5.setMinimumSize(new Dimension(20, 30));
+        button5.setPreferredSize(new Dimension(50, 30));
+        button5.setText("5");
+        gbc = new GridBagConstraints();
+        gbc.gridx = 2;
+        gbc.gridy = 2;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        digitPanel.add(button5, gbc);
+        button6 = new JButton();
+        button6.setMaximumSize(new Dimension(100, 30));
+        button6.setMinimumSize(new Dimension(20, 30));
+        button6.setPreferredSize(new Dimension(50, 30));
+        button6.setText("6");
+        gbc = new GridBagConstraints();
+        gbc.gridx = 4;
+        gbc.gridy = 2;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        digitPanel.add(button6, gbc);
+        final JPanel spacer12 = new JPanel();
+        gbc = new GridBagConstraints();
+        gbc.gridx = 3;
+        gbc.gridy = 0;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        digitPanel.add(spacer12, gbc);
+        final JPanel spacer13 = new JPanel();
+        gbc = new GridBagConstraints();
+        gbc.gridx = 0;
+        gbc.gridy = 3;
+        gbc.fill = GridBagConstraints.VERTICAL;
+        digitPanel.add(spacer13, gbc);
+        button7 = new JButton();
+        button7.setMaximumSize(new Dimension(100, 30));
+        button7.setMinimumSize(new Dimension(20, 30));
+        button7.setPreferredSize(new Dimension(50, 30));
+        button7.setText("7");
+        gbc = new GridBagConstraints();
+        gbc.gridx = 0;
+        gbc.gridy = 4;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        digitPanel.add(button7, gbc);
+        final JPanel spacer14 = new JPanel();
+        gbc = new GridBagConstraints();
+        gbc.gridx = 0;
+        gbc.gridy = 5;
+        gbc.fill = GridBagConstraints.VERTICAL;
+        digitPanel.add(spacer14, gbc);
+        button0 = new JButton();
+        button0.setMaximumSize(new Dimension(100, 30));
+        button0.setMinimumSize(new Dimension(20, 30));
+        button0.setPreferredSize(new Dimension(50, 30));
+        button0.setText("0");
+        gbc = new GridBagConstraints();
+        gbc.gridx = 0;
+        gbc.gridy = 6;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        digitPanel.add(button0, gbc);
+        button8 = new JButton();
+        button8.setMaximumSize(new Dimension(100, 30));
+        button8.setMinimumSize(new Dimension(20, 30));
+        button8.setPreferredSize(new Dimension(50, 30));
+        button8.setText("8");
+        gbc = new GridBagConstraints();
+        gbc.gridx = 2;
+        gbc.gridy = 4;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        digitPanel.add(button8, gbc);
+        button9 = new JButton();
+        button9.setMaximumSize(new Dimension(100, 30));
+        button9.setMinimumSize(new Dimension(20, 30));
+        button9.setPreferredSize(new Dimension(50, 30));
+        button9.setText("9");
+        gbc = new GridBagConstraints();
+        gbc.gridx = 4;
+        gbc.gridy = 4;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        digitPanel.add(button9, gbc);
+        button_dot = new JButton();
+        button_dot.setMaximumSize(new Dimension(100, 30));
+        button_dot.setMinimumSize(new Dimension(20, 30));
+        button_dot.setPreferredSize(new Dimension(50, 30));
+        button_dot.setText(".");
+        gbc = new GridBagConstraints();
+        gbc.gridx = 2;
+        gbc.gridy = 6;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        digitPanel.add(button_dot, gbc);
+        button_equal = new JButton();
+        button_equal.setMaximumSize(new Dimension(100, 30));
+        button_equal.setMinimumSize(new Dimension(20, 30));
+        button_equal.setPreferredSize(new Dimension(50, 30));
+        button_equal.setText("=");
+        gbc = new GridBagConstraints();
+        gbc.gridx = 4;
+        gbc.gridy = 6;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        digitPanel.add(button_equal, gbc);
+        button2 = new JButton();
+        button2.setMaximumSize(new Dimension(100, 30));
+        button2.setMinimumSize(new Dimension(20, 30));
+        button2.setPreferredSize(new Dimension(50, 30));
+        button2.setText("2");
+        gbc = new GridBagConstraints();
+        gbc.gridx = 2;
+        gbc.gridy = 0;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        digitPanel.add(button2, gbc);
+        button1 = new JButton();
+        button1.setMaximumSize(new Dimension(100, 30));
+        button1.setMinimumSize(new Dimension(20, 30));
+        button1.setPreferredSize(new Dimension(50, 30));
+        button1.setText("1");
+        gbc = new GridBagConstraints();
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        digitPanel.add(button1, gbc);
         ButtonGroup buttonGroup;
         buttonGroup = new ButtonGroup();
         buttonGroup.add(hexRadioButton);
