@@ -193,4 +193,24 @@
             android:text="+" />
     </LinearLayout>
 
+    <RadioGroup
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <RadioButton
+            android:id="@+id/useExpButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:checked="true"
+            android:text="Prefix Expression" />
+
+        <RadioButton
+            android:id="@+id/useEvalButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Eval()" />
+
+    </RadioGroup>
+
 </LinearLayout>

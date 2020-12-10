@@ -6,6 +6,7 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.RadioButton;
 import android.widget.TextView;
 import android.widget.EditText;
 
@@ -13,6 +14,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Stack;
+
+import javax.script.ScriptEngine;
+import javax.script.ScriptEngineManager;
+import javax.script.ScriptException;
 
 public class MainActivity extends AppCompatActivity
 {
@@ -29,6 +34,7 @@ public class MainActivity extends AppCompatActivity
     EditText inputView;
     TextView outputView;
 
+    ScriptEngine jsEngine=new ScriptEngineManager().getEngineByName("js");
 
     @Override
     protected void onCreate(Bundle savedInstanceState)
@@ -85,6 +91,18 @@ public class MainActivity extends AppCompatActivity
             @Override
             public void onClick(View view)
             {
+                if(((RadioButton)findViewById(R.id.useEvalButton)).isChecked())
+                {
+                    try
+                    {
+                        outputView.setText(jsEngine.eval(inputView.getText().toString().trim()).toString());
+                    } catch (ScriptException e)
+                    {
+                        e.printStackTrace();
+                        outputView.setText("Error!");
+                    }
+                    return;
+                }
                 boolean isFailed = false;
                 ArrayList<String> res1;
                 ArrayList<String> res2;
