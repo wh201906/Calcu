@@ -62,6 +62,12 @@ public class MainActivity extends AppCompatActivity
         findViewById(R.id.Button_divide).setOnClickListener(contentOnClickListener);
         findViewById(R.id.Button_Lbrace).setOnClickListener(contentOnClickListener);
         findViewById(R.id.Button_Rbrace).setOnClickListener(contentOnClickListener);
+        findViewById(R.id.Button_pow).setOnClickListener(contentOnClickListener);
+        findViewById(R.id.Button_mod).setOnClickListener(contentOnClickListener);
+        findViewById(R.id.Button_Lshift).setOnClickListener(contentOnClickListener);
+        findViewById(R.id.Button_Rshift).setOnClickListener(contentOnClickListener);
+        findViewById(R.id.Button_and).setOnClickListener(contentOnClickListener);
+        findViewById(R.id.Button_or).setOnClickListener(contentOnClickListener);
 
         findViewById(R.id.Button_clear).setOnClickListener(new View.OnClickListener()
         {
@@ -95,7 +101,10 @@ public class MainActivity extends AppCompatActivity
                 {
                     try
                     {
-                        outputView.setText(jsEngine.eval(inputView.getText().toString().trim()).toString());
+                        String input=inputView.getText().toString().trim();
+                        input=input.replace("÷","/");
+                        input=input.replace("×","*");
+                        outputView.setText(jsEngine.eval(input).toString());
                     } catch (ScriptException e)
                     {
                         e.printStackTrace();
