@@ -97,15 +97,19 @@ public class MainActivity extends AppCompatActivity
             @Override
             public void onClick(View view)
             {
+                String input=inputView.getText().toString().trim();
+                if (input.isEmpty())
+                {
+                    return;
+                }
                 if(((RadioButton)findViewById(R.id.useEvalButton)).isChecked())
                 {
                     try
                     {
-                        String input=inputView.getText().toString().trim();
                         input=input.replace("÷","/");
                         input=input.replace("×","*");
                         outputView.setText(jsEngine.eval(input).toString());
-                    } catch (ScriptException e)
+                    } catch (Exception e)
                     {
                         e.printStackTrace();
                         outputView.setText("Error!");
@@ -116,16 +120,12 @@ public class MainActivity extends AppCompatActivity
                 ArrayList<String> res1;
                 ArrayList<String> res2;
                 String res3 = "";
-                if (inputView.getText().toString().trim().isEmpty())
-                {
-                    return;
-                }
                 try
                 {
-                    res1 = split(inputView.getText().toString().trim());
+                    res1 = split(input);
                     res2 = infix2suffix(res1);
                     res3 = computeSuffix(res2);
-                } catch (Exception exception)
+                } catch (Exception e)
                 {
                     isFailed = true;
                 }
